@@ -4,6 +4,8 @@ def count_memory_access(file_path):
     # Create dictionaries to store the counts of each address for reads and writes
     read_counts = {}
     write_counts = {}
+    total_counts = {}
+    
 
     # Open the file and read through each line
     with open(file_path, 'r') as file:
@@ -15,7 +17,7 @@ def count_memory_access(file_path):
             # Check if the line has enough components
             if len(components) < 7:
                 # Print a warning and skip this line
-                print(f"Warning: Skipping line - not enough components: {line}")
+                print(f"Warning: Skipping line - not enough components: {line}", file=sys.stderr)
                 continue
 
             # Extract the access type and address from the line
@@ -28,7 +30,7 @@ def count_memory_access(file_path):
                 read_counts[address_line] = read_counts.get(address_line, 0) + 1
             elif access_type == 'W':
                 write_counts[address_line] = write_counts.get(address_line, 0) + 1
-
+            total_counts[address_line] = total_counts.get(address_line, 0) + 1
     # Print the results for reads
     print("Reads:")
     for address, count in read_counts.items():
@@ -37,6 +39,11 @@ def count_memory_access(file_path):
     # Print the results for writes
     print("\nWrites:")
     for address, count in write_counts.items():
+        print(f"Address {address} is written {count} times.")
+
+    # Print sum of results
+    print("Total Accesses:")
+    for address, count in total_counts.items():
         print(f"Address {address} is written {count} times.")
 
 if __name__ == "__main__":
