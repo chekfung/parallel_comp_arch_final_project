@@ -1,0 +1,40 @@
+Three things that we want to do: 
+
+
+0. Quick statistics on lines
+	- How many readers after a line writes?
+	- How many lines of memory are even shared? As in, not unique lines
+		- Hash map memory address and add thread (n % of lines are shared)
+
+1. Predict Next Readers after a Write (Homesite)
+	- Look at who reads something in between two writes of the same address
+	- Those are the readers
+	- Can we use history of that memory address and who tries to access it to predict the future
+
+
+Thread 1 Writes (You might need both of these)
+- Thread 2 Read (predict this)
+- Thread 4 Read (predict this)
+
+Thread 6 Writes (It might be useful to also contain this)
+
+Addr) -> (1) -> Next Readers 
+
+
+2. Read Invalidations :o Shared predicted invalidations (cache side, per process)
+	- It becomes a little more difficult (we only have our memory access patterns, and perhaps invalidations 
+	  from the homesite)
+	- The most amount of information that you would have is you have a memory access stream of your own memory, and  
+	   and then maybe have prior invalidati\ons
+
+Ex:
+Read 1
+Read 1
+Invalidate 1 (Can we predict this and invalidate ourselves before this comes ?) 
+	- Track Read history on an address per processor. Check when a write to this address occurs 
+	  on another processor (This means that we got invalidated theoretically)
+		- Don't worry about cache or whether we invalidated ourselves? We can just use a 
+		  arbitrary length of time to hold information.
+
+
+
