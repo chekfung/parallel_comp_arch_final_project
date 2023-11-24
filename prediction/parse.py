@@ -46,6 +46,50 @@ def count_memory_access(file_path):
     for address, count in total_counts.items():
         print(f"Address {address} is written {count} times.")
 
+def unique_thread_access(file_path):
+    # Create a dictionary to store the threads that have accessed each address
+    address_threads = {}
+
+    # Open the file and read through each line
+    with open(file_path, 'r') as file:
+        for line in file:
+            # Split the line into components
+            components = line.split()
+            # print(components)
+
+            # Check if the line has enough components
+            if len(components) < 8:
+                # Print a warning and skip this line
+                # print(f"Warning: Skipping line - not enough components: {line}", file=sys.stderr)
+                continue
+
+            # Extract the thread ID and address from the line
+            thread_id = components[1]
+            address_line = components[7]
+
+            # Update the set of threads that have accessed the address
+            if address_line in address_threads:
+                address_threads[address_line].add(thread_id)
+            else:
+                address_threads[address_line] = {thread_id}
+
+    number_of_shared_lines = 0
+    number_of_single_lines = 0
+    # Print the results
+    for address, threads in address_threads.items():
+        if len(threads) > 1:
+            number_of_shared_lines = number_of_shared_lines + 1
+        else:
+            number_of_single_lines += 1
+        print(f"Address {address} is accessed by threads: {', '.join(threads)}")
+
+    # print total count
+    # count_shared_addresses = sum(len(address_threads[address]) > 1 for address in address_threads)
+
+    print(f"Number of shared lines: {number_of_shared_lines}")
+    print(f"Number of single lines: {number_of_single_lines}")
+
+
 if __name__ == "__main__":
     # Check if a file path is provided as a command-line argument
     if len(sys.argv) != 2:
@@ -53,4 +97,5 @@ if __name__ == "__main__":
         sys.exit(1)
 
     file_path = sys.argv[1]
-    count_memory_access(file_path)
+    # count_memory_access(file_path)
+    unique_thread_access(file_path)
