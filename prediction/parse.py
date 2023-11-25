@@ -89,6 +89,51 @@ def unique_thread_access(file_path):
     print(f"Number of shared lines: {number_of_shared_lines}")
     print(f"Number of single lines: {number_of_single_lines}")
 
+def calc_unique_reads(file_path):
+    # Create a dictionary to store the threads that have accessed each address
+    address_threads = {}
+
+    # Open the file and read through each line
+    with open(file_path, 'r') as file:
+        for line in file:
+            # Split the line into components
+            components = line.split()
+            # print(components)
+
+            # Check if the line has enough components
+            if len(components) < 8:
+                # Print a warning and skip this line
+                # print(f"Warning: Skipping line - not enough components: {line}", file=sys.stderr)
+                continue
+
+            # Extract the thread ID and address from the line
+            thread_id = components[1]
+            address_line = components[7]
+            read_write = components[4]
+
+            # Update the set of threads that have accessed the address
+            if address_line in address_threads:
+                # // not sure what do to for reads before write (assumes homesite) TODO: determine homesite
+                addr_list = address_threads[address_line]
+                old_id = address_threads[address_line][1]
+                if thread_id == old_id: # ignore read/writes from same thread
+                    continue
+                    
+                if read_write == 'W':
+                    empty_set = set()
+                    address_threads[address_line] = ['W', thread_id, empty_set,addr_list[3] + len(addr_list[2]),addr_list[4] + (int)(addr_list[0] == 'W')]
+                else: # read_write is 'R
+                    address_threads[address_line][2].add(thread_id)
+
+
+            else: # not in bag: key: addr, value: {R/W, ThreadiD,{thrads that have read}}
+                address_threads[address_line] = [read_write, thread_id,set(),0,0]
+
+    for address, read_list in address_threads.items():
+        if read_list[3] + len(read_list[2]) != 0 or read_list[4] + (read_list[0] == 'W') != 0:
+            print(f"Address {address} was read a total of {read_list[3] + len(read_list[2])} unique times and written by different threads a total of {read_list[4] + (read_list[0] == 'W')} times")
+
+
 
 if __name__ == "__main__":
     # Check if a file path is provided as a command-line argument
@@ -98,4 +143,5 @@ if __name__ == "__main__":
 
     file_path = sys.argv[1]
     # count_memory_access(file_path)
-    unique_thread_access(file_path)
+    # unique_thread_access(file_path)
+    calc_unique_reads(file_path)
