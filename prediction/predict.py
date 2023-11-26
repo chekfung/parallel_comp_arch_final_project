@@ -7,22 +7,27 @@ from bitarray import bitarray
 def predict_write_last_time(filepath, number_of_procs):
     # Create a dictionary to store the threads that have accessed each address
 
+    correct = 0
+    incorrect = 0
 
     # for each cacheline (addr >> 9), store readers that read from it associated with the last thread/proc that wrote to it
     cache_line_table = {} # tracks current pattern # dictionary of  number_of_procs arrays which are each number_of_procs bits wide
     cache_line_writer = {} # tracks current/last writer
     cache_line_history = {} # tracks readers for current writer
     cache_line_prediction = {}
+    count = 0
 
     # Open the file and read through each line
     with open(file_path, 'r') as file:
         for line in file:
+            
             # Split the line into components
             components = line.split()
             # Check if the line has enough components
             if len(components) < 8:
                 # Print a warning and skip this line
                 # print(f"Warning: Skipping line - not enough components: {line}", file=sys.stderr)
+                count += 1
                 continue
             # print(components)
             thread = int(components[1])
@@ -30,12 +35,24 @@ def predict_write_last_time(filepath, number_of_procs):
             address = int(components[7],0)
             cache_line = address >> 9
 
+            if cache_line == 12336:
+                a = 1
             if read_write == 'W':
-                
+
+                if cache_line in cache_line_prediction:
+                    if cache_line_prediction[cache_line][:number_of_procs] == cache_line_history[cache_line][:number_of_procs] and int(cache_line_prediction[cache_line][:number_of_procs][::-1].to01(), 2) != (1 << cache_line_writer[cache_line]) :
+                        print(count, cache_line_prediction[cache_line][:number_of_procs], cache_line_history[cache_line][:number_of_procs],cache_line_writer[cache_line],cache_line)
+                        print(int(cache_line_prediction[cache_line][:number_of_procs].to01(), 2),  (1 << cache_line_writer[cache_line]))
+                        correct+=1
+                    else:
+                        incorrect+=1
+                    
                 # If cache_line not in cache_line_writer #first writer
                 if cache_line not in cache_line_writer:
+                    count += 1
+                    continue # dont add until its been written
                     # add thread to cache_line_writer
-                    cache_line_writer[cache_line] = thread # 1 represents first time, thus cache_line_table is empty
+                    # cache_line_writer[cache_line] = thread # 1 represents first time, thus cache_line_table is empty
                 else:
                 # else its the next write, thus we should save the current readers for that cache_line and make prediction of readers for the new write (if that CL has been written too once)
                     if cache_line in cache_line_table and cache_line_table[cache_line][thread][number_of_procs] == 1: # check if thread has been written too before
@@ -68,6 +85,8 @@ def predict_write_last_time(filepath, number_of_procs):
                 if cache_line not in cache_line_history:
                     cache_line_history[cache_line] = bitarray([0]* (number_of_procs + 1))
                 cache_line_history[cache_line][thread] = 1
+            count += 1
+    print(f"Correct {correct}, Incorrect {incorrect}")
 
 
 
