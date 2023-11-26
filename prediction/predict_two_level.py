@@ -14,8 +14,52 @@ class MessageHistoryTable:
         if cacheline_address not in self.history_table:
             self.history_table[cacheline_address] = []
 
+        # Enforce Coherence Protocols
+
+        # For reads, if there is either a previous R or W, then we shouldnt add it unless...
+        if operation == "R":
+            for i in range(len(self.history_table[cacheline_address])-1, 1, -1): # check if this goes to 0
+                entry = self.history_table[cacheline_address][i]
+                e_thread_id = entry[0]
+                e_op = entry[1]
+                flag = False # means allow to continue
+                if e_thread_id == thread_id: # Todo: we could check if its a read
+                    for j in range(i, len(self.history_table[cacheline_address])): # check if this goes to 0
+                        entry_1 = self.history_table[cacheline_address][j]
+                        e1_id = entry_1[0]
+                        e1_op = entry_1[1]
+                        if e1_id != e_thread_id and e1_op == 'W':
+                            flag = True
+                            break 
+
+                    if flag:
+                        break
+                    else: 
+                        return
+                    
+        # For writes, if there is a previous R, then we can it, if there is a previous W, then we shouldnt add it unless...
+        if operation == "W":
+            for i in range(len(self.history_table[cacheline_address])-1, 1, -1): # check if this goes to 0
+                entry = self.history_table[cacheline_address][i]
+                e_thread_id = entry[0]
+                e_op = entry[1]
+                flag = False # means allow to continue
+                if e_thread_id == thread_id and e_op == 'W': 
+                    for j in range(i, len(self.history_table[cacheline_address])): # check if this goes to 0
+                        entry_1 = self.history_table[cacheline_address][j]
+                        e1_id = entry_1[0]
+                        e1_op = entry_1[1]
+                        if e1_id != e_thread_id and e1_op == 'W':
+                            flag = True
+                            break 
+                    # We will return, unless we find a W from a differnt thread, then flag is set
+                    if flag:
+                        break
+                    else: 
+                        return
+                    
         # Append the new tuple to the history
-        self.history_table[cacheline_address].append((thread_id, operation))
+        self.history_table[cacheline_address].append((thread_id, operation))  # operation is either W or R
 
         # Keep only the latest N entries for the cacheline
         if len(self.history_table[cacheline_address]) > self.max_entries_per_line:
@@ -24,6 +68,7 @@ class MessageHistoryTable:
     def get_history(self, cacheline_address):
         # Return the history for the given cacheline address
         return self.history_table.get(cacheline_address, [])
+
 
 # # Example Usage:
 # history_table = MessageHistoryTable()
