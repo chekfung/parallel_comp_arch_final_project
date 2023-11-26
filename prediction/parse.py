@@ -127,12 +127,11 @@ def calc_unique_reads(file_path):
 
 
             else: # not in bag: key: addr, value: {R/W, ThreadiD,{thrads that have read}}
-                address_threads[address_line] = [read_write, thread_id,set(),0,0]
+                address_threads[address_line] = ['F', thread_id,set(),0,0] # F for first, we dont want to count first write
 
     for address, read_list in address_threads.items():
         if read_list[3] + len(read_list[2]) != 0 or read_list[4] + (read_list[0] == 'W') != 0:
             print(f"Address {address} was read a total of {read_list[3] + len(read_list[2])} unique times and written by different threads a total of {read_list[4] + (read_list[0] == 'W')} times")
-
 
 
 if __name__ == "__main__":
