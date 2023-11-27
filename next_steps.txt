@@ -3,13 +3,23 @@ Three things that we want to do:
 
 0. Quick statistics on lines
 	- How many readers after a line writes?
+	 -- when we write, count how many reads there are after to it before next read
+	 -- when new write occures, append it to a list for that
+
+
 	- How many lines of memory are even shared? As in, not unique lines
 		- Hash map memory address and add thread (n % of lines are shared)
+Juhn
+TODO:
+ - change from ADDR -> Cache Line
 
 1. Predict Next Readers after a Write (Homesite)
 	- Look at who reads something in between two writes of the same address
 	- Those are the readers
 	- Can we use history of that memory address and who tries to access it to predict the future
+
+-- save last 10 reads to proc that writes
+ then each  time its accessed try to predict write
 
 
 Thread 1 Writes (You might need both of these)
