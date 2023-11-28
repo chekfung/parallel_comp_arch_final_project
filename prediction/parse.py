@@ -23,7 +23,7 @@ def count_memory_access(file_path):
             # Extract the access type and address from the line
             access_type = components[4]
             # Remove the "ADDR:" prefix from the address
-            address_line = components[7]
+            address_line = components[7] >> 8
 
             # Update the count in the appropriate dictionary
             if access_type == 'R':
@@ -46,6 +46,14 @@ def count_memory_access(file_path):
     for address, count in total_counts.items():
         print(f"Address {address} is written {count} times.")
 
+# class count_memory_access_tracker:
+
+#     # create function that takes in 1 line from func and updates state
+
+#     # create function that prints results
+
+
+
 def unique_thread_access(file_path):
     # Create a dictionary to store the threads that have accessed each address
     address_threads = {}
@@ -65,7 +73,7 @@ def unique_thread_access(file_path):
 
             # Extract the thread ID and address from the line
             thread_id = components[1]
-            address_line = components[7]
+            address_line = components[7] >> 8
 
             # Update the set of threads that have accessed the address
             if address_line in address_threads:
@@ -108,7 +116,7 @@ def calc_unique_reads(file_path):
 
             # Extract the thread ID and address from the line
             thread_id = components[1]
-            address_line = components[7]
+            address_line = int(components[7],0) >> 8
             read_write = components[4]
 
             # Update the set of threads that have accessed the address

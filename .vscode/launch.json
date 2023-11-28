@@ -9,10 +9,10 @@
             "name": "Python: Current File",
             "type": "python",
             "request": "launch",
-            "program": "${file}",
+            "program": "prediction/predict_two_level.py",
             "console": "integratedTerminal",
             "justMyCode": true,
-            "args": ["sample_log/output_mem_trace.log", "4"]
+            "args": ["logs/output_mem_trace_locks.log", "9","2","16"]
         }
     ]
 }
