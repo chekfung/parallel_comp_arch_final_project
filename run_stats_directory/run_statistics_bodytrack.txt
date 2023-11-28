@@ -1,0 +1,26 @@
+Statistics
+Shared Cache Lines (Total): 12.371082155254816%
+Shared Cache Lines (Program): 0.6506710044733631%
+Shared Cache Lines (OS): 99.34932899552665%
+Average Unique Consumers per Prediction (Total): 1.668282710280374
+Average Unique Consumers per Prediction (Program): 2.9910714285714284
+Average Unique Consumers per Prediction (OS) 1.4805229455709712
+Average Queries per Shared Cache Line (Total): 6.962179747864986
+Average Queries per Shared Cache Line (Program): 133.0
+Average Queries per Shared Cache Line (OS): 6.136717151043799
+
+
+Raw Counters
+total_cache_lines_touched: 39754
+num_shared_lines: 4918
+num_os_shared_lines: 4886
+num_program_shared_lines: 32
+num_avg_unique_readers: 1.668282710280374
+num_avg_unique_readers_program: 2.9910714285714284
+num_avg_unique_readers_os: 1.4805229455709712
+number_of_queries: 34240
+number_of_os_queries: 29984
+number_of_program_queries: 4256
+total_number_of_consumers: 57122
+total_number_of_os_consumers: 44392
+total_number_of_program_consumers: 12730
