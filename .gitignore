@@ -33,6 +33,5 @@
 
 # Logs
 *.log
-*.txt
 *.tgz
 *.zip
