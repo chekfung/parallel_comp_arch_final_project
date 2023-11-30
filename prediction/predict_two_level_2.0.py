@@ -280,7 +280,6 @@ def predict_readers_two_level_update_MSR(file_path, max_entries_in_mht, max_line
             count += 1
     print(correct, incorrect)
 
-    # TODO: Add the evaluation of prediction accuracy
 
             
 
