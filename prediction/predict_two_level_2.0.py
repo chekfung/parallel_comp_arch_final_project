@@ -108,8 +108,10 @@ class PatternHistoryTable:
 
         # Remove the least frequently occurring patterns if the table exceeds the maximum entries
         if len(self.pattern_table) > self.max_entries:
-            min_pattern = min(self.pattern_table, key=lambda x: self.pattern_table[x].count())
-            del self.pattern_table[min_pattern]
+            # min_pattern = min(self.pattern_table, key=lambda x: self.pattern_table[x].count())
+            # del self.pattern_table[min_pattern]
+            first_key = next(iter(self.pattern_table))
+            del self.pattern_table[first_key]
         return pattern_tuple
 
     def get_pattern_info(self, pattern_tuple):
@@ -118,6 +120,12 @@ class PatternHistoryTable:
             return copy.deepcopy(self.pattern_table.get(tuple(pattern_tuple)))
         else:
             return bitarray([0] * self.number_of_procs)
+    
+    def set_pattern_by_history(self, history, prediction):
+        if history not in self.pattern_table:
+            self.pattern_table[history] = prediction
+        else:
+            self.pattern_table[history] = prediction
 
 
 
@@ -166,38 +174,17 @@ class CachelinePatternHistoryTables:
             return self.cacheline_pattern_tables[cacheline_address].get_pattern_info(pattern_tuple)
         else:
             return  bitarray([0] * number_of_procs)  # Adjust the return value to match the structure
-
-
-# # Example Usage:
-# cacheline_pattern_table = CachelinePatternHistoryTables()
-
-# # Update history and pattern for cacheline 0x100
-# cacheline_pattern_table.update_history_and_pattern(0x100, 1, 'R', 0b110)
-# cacheline_pattern_table.update_history_and_pattern(0x100, 2, 'W', 0b101)
-
-# # # Retrieve pattern information for cacheline 0x100 and tuple (1, 'R')
-# # print(cacheline_pattern_table.get_pattern_info_for_cacheline(0x100, (1, 'R')))
-
-# class MessageHistoryTables:
-#     def __init__(self):
-#         # Dictionary to store MessageHistoryTable instances indexed by cacheline address
-#         self.message_history_table = MessageHistoryTable()
-
-#     def update_history(self, cacheline_address, thread_id, operation):
-#         # Update MessageHistoryTable for the cacheline
-#         self.message_history_table.history_table[cacheline_address].update_history(thread_id, operation)
-
-#     def get_history_for_cacheline(self, cacheline_address):
-#         # Retrieve message history for the given cacheline address
-#         return self.message_history_table.history_table[cacheline_address].get_history()
-
-
+        
+    def set_pattern_by_history(self,cache_line, history, prediction):
+        if cache_line not in self.cacheline_pattern_tables:
+            self.cacheline_pattern_tables[cache_line] = PatternHistoryTable(self.max_entries_per_pattern, self.number_of_procs)
+        self.cacheline_pattern_tables[cache_line].set_pattern_by_history(history, prediction)
 
 
 
 # assume if read first, it is writer
 
-def predict_readers_two_level(file_path, max_entries_in_mht, max_lines_per_PHT, number_of_procs):
+def predict_readers_two_level_update_MSR(file_path, max_entries_in_mht, max_lines_per_PHT, number_of_procs, count_thread_write_as_read):
     correct = 0
     incorrect = 0
     count = 0
@@ -231,10 +218,6 @@ def predict_readers_two_level(file_path, max_entries_in_mht, max_lines_per_PHT, 
             # Get history for cacheline (fetch MHR)
             history = message_history_table.get_history(cache_line)
 
-            if cache_line == 185857695985 and last_thread != thread:
-                a = 1
-                if read_write == 'W':
-                    last_thread = thread
 
             # Current PHT idx
             if cache_line not in HistoryTracker:
@@ -251,18 +234,21 @@ def predict_readers_two_level(file_path, max_entries_in_mht, max_lines_per_PHT, 
             # if Write, then update HTracker to new PHT index
 
             if read_write == 'W':
-                #  Update tracker
-                HistoryTracker[cache_line] = message_history_table.get_history(cache_line)
+
+                if cache_line not in cache_line_history:                
+                    cache_line_history[cache_line] = bitarray([0]* (number_of_procs + 1))
+                old_readers = cache_line_history[cache_line][:number_of_procs]
+
+
 
                 # Accuracy Evaluation
                 # If there is a prediction evaluate it
                 if cache_line in Cache_Predictions and cache_line in cache_line_history and cache_line_history[cache_line][number_of_procs] == 1:
                     old_prediction = Cache_Predictions[cache_line]
-                    old_readers = cache_line_history[cache_line][:number_of_procs]
                     thread_writer = cache_line_writer[cache_line]
 
                     cor = True
-                    if 1 << thread_writer != int(old_readers[::-1].to01(),2):
+                    if count_thread_write_as_read == 1 or 1 << thread_writer != int(old_readers[::-1].to01(),2):
                         if old_prediction == old_readers:
                             correct += 1
                         else:
@@ -273,15 +259,20 @@ def predict_readers_two_level(file_path, max_entries_in_mht, max_lines_per_PHT, 
 
                     cache_line_history[cache_line] = bitarray([0]* (number_of_procs + 1))
                     
+                    # Update PatternHistoryTable for the current cacheline and thread
+                    pattern_tables.set_pattern_by_history(cache_line, tuple(cache_writer_history), old_readers)
 
 
                 # New Prediction
                 Cache_Predictions[cache_line] = pattern_tables.get_pattern_info_for_cacheline(cache_line,history)
                 cache_line_writer[cache_line] = thread
+
+                #  Update tracker
+                HistoryTracker[cache_line] = message_history_table.get_history(cache_line)
             else:  # 'R'
                 # Update PatternHistoryTable for the current cacheline and thread
-                if len(cache_writer_history) != 0:
-                    updated_history = pattern_tables.update_history(cache_line, tuple(cache_writer_history), thread)
+                # if len(cache_writer_history) != 0:
+                #     updated_history = pattern_tables.update_history(cache_line, tuple(cache_writer_history), thread)
                 if cache_line not in cache_line_history:
                     cache_line_history[cache_line] = bitarray([0]* (number_of_procs + 1))
                 cache_line_history[cache_line][thread] = 1
@@ -321,7 +312,7 @@ def predict_readers_two_level(file_path, max_entries_in_mht, max_lines_per_PHT, 
 
 if __name__ == "__main__":
     # Check if a file path is provided as a command-line argument
-    if len(sys.argv) != 5:
+    if len(sys.argv) != 6:
         print("Usage: python script.py <file_path>")
         sys.exit(1)
 
@@ -329,6 +320,7 @@ if __name__ == "__main__":
     number_of_procs = int(sys.argv[2])
     max_entries_in_mht = int(sys.argv[3])
     max_lines_per_PHT = int(sys.argv[4])
+    allow = int(sys.argv[5])
     # count_memory_access(file_path)
     # unique_thread_access(file_path)
-    predict_readers_two_level(file_path, max_entries_in_mht, max_lines_per_PHT, number_of_procs)
+    predict_readers_two_level_update_MSR(file_path, max_entries_in_mht, max_lines_per_PHT, number_of_procs, allow)
