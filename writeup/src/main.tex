@@ -1,0 +1,53 @@
+\documentclass[11pt,letterpaper]{article}
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath, amsthm, amsfonts, amssymb, amscd}
+\usepackage{fullpage, lastpage, fancyhdr}
+\usepackage{enumerate, enumitem}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{fancyvrb}
+\usepackage{multirow}
+\usepackage{float}
+\usepackage[colorinlistoftodos]{todonotes}
+\usepackage{subfiles}
+\usepackage[margin=0.6in, top=0.9in, bottom=0.9in]{geometry}
+\usepackage{biblatex}
+\usepackage{titlesec}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{verbatimbox}
+\usepackage{multirow}
+\usepackage{microtype}
+\usepackage{tabularray}
+\usepackage{longtable}
+
+% python code format: https://github.com/olivierverdier/python-latex-highlighting
+\usepackage{pythonhighlight}
+\hyphenpenalty=10000
+\hbadness=10000
+\setlength{\parindent}{0.0in}
+\setlength{\parskip}{0cm}
+\titlespacing*{\section}{0pt}{0.1cm}{0.05cm}
+
+\addbibresource{class_paper_reading.bib}
+
+% Personal Comment Codes
+\newcommand{\JH}[1]{\textcolor{violet}{{\bf\boldmath JH:} {#1}}}
+\newcommand{\MT}[1]{\textcolor{magenta}{{\bf\boldmath MT:} {#1}}}
+\newcommand{\PG}[1]{\textcolor{blue}{{\bf\boldmath PG:} {#1}}}
+
+\begin{document}
+
+% Put in all sub sections
+\subfile{title.tex}
+\subfile{template.tex}
+
+
+% print Appendix
+\pagebreak
+\printbibliography
+
+
+
+\end{document}
