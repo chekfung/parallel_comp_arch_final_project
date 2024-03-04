@@ -1,0 +1,40 @@
+Questions for kiddos
+Group 1 (oops did not need to do this one)
+-----------------
+1. For speculative writeback, if you predict correctly, the home site will not receive a request from a future remote requesting processor. How do you handle updating the new requesters given that the period between RWITMs will just give you the processors that you were incorrect on?
+
+2. What is the bandiwdth in terms of message hops supposed to tell me in 
+   your analytical analysis? You have total number of modified accesses,
+   but even if you speculate a writeback, you do not reduce the number 
+   of messages sent?
+
+3. You say in your project summary that you are able to increase performance significantly, but I do not see any explicit performance results. What is your speedup?
+
+
+Group 4 (Also an interesting project, but I feel like not much is done that could have just been seen by reading documentation...) 
+--------------------
+1. If you did not see the cache line migration issue, what is the implication on the MPI primitives?
+
+2. Maybe I missed the explanation, but what is MDOEFSI? Rather, what is D and what is F?
+
+
+Group 5 (Interesting project...)
+--------------------
+1. What is the total memory overhead compared to something like the distributed MESI protocol?
+
+2. Right now, each node has 1 core. How would you modify this scheme for a multicore processor at each node instead? Does it make sense to duplicate the lock list table per core, or could you do better with individual arbitration of handling all locks if requested on a single multicore before sending it to the next node?
+
+Group 6 (Weijie and Sayam)
+--------------------
+1. It seems that in all the workloads that have writes, the 'smart' prefetcher does not do anything in both the reduction case and the pipelining case. How do you think this would change if the node's work was not exactly the same or has different latencies?
+
+2. Your work only considers prefetch depth of 1, but many prefetchers are aggressive. Does it make sense for prefetch depths greater than 1?
+
+Group 7 (Tienda)
+--------------------
+1. Let's say you have a long scan that goes across all processor memories. With a scan, you do not want to thrash your cache as you will not use this information again (for a long time). How could you augment your time-based re-reference interval to account for scans?
+
+2.To go from memory access rereference interval to time-based reference intervals for your clairvoyant replacement policy, you divide by the the time penalty for previous accesses. I do not quite understand. Could you explain why?
+
+
+
